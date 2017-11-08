@@ -24,8 +24,11 @@ import br.com.andrei.converters.UnitOfMeasureToUnitOfMeasureCommand;
 import br.com.andrei.domain.Ingredient;
 import br.com.andrei.domain.Recipe;
 import br.com.andrei.domain.UnitOfMeasure;
+import br.com.andrei.repositories.RecipeReactiveRepository;
 import br.com.andrei.repositories.RecipeRepository;
+import br.com.andrei.repositories.UnitOfMeasureReactiveRepository;
 import br.com.andrei.repositories.UnitOfMeasureRepository;
+import reactor.core.publisher.Mono;
 
 public class IngredientServiceImplTest {
 
@@ -33,10 +36,10 @@ public class IngredientServiceImplTest {
 	private final IngredientCommandToIngredient ingredientCommandToIngredient;
 
 	@Mock
-	RecipeRepository recipeRepository;
+	RecipeReactiveRepository recipeRepository;
 
 	@Mock
-	UnitOfMeasureRepository unitOfMeasureRepository;
+	UnitOfMeasureReactiveRepository unitOfMeasureRepository;
 
 	IngredientService ingredientService;
 
@@ -74,12 +77,11 @@ public class IngredientServiceImplTest {
 		recipe.addIngredient(ingredient1);
 		recipe.addIngredient(ingredient2);
 		recipe.addIngredient(ingredient3);
-		Optional<Recipe> recipeOptional = Optional.of(recipe);
 
-		when(recipeRepository.findById(anyString())).thenReturn(recipeOptional);
+		when(recipeRepository.findById(anyString())).thenReturn(Mono.just(recipe));
 
 		// then
-		IngredientCommand ingredientCommand = ingredientService.findByRecipeIdAndIngredientId("1", "3");
+		IngredientCommand ingredientCommand = ingredientService.findByRecipeIdAndIngredientId("1", "3").block();
 
 		// when
 		assertEquals("3", ingredientCommand.getId());
@@ -87,7 +89,7 @@ public class IngredientServiceImplTest {
 		verify(recipeRepository, times(1)).findById(anyString());
 	}
 
-	@Test(expected= NoSuchElementException.class)
+	@Test(expected= RuntimeException.class)
 	public void findByRecipeIdAndIdNoRecipeFound() throws Exception {
 		// given
 		Recipe recipe = new Recipe();
@@ -103,7 +105,7 @@ public class IngredientServiceImplTest {
 		ingredient3.setId("3");
 
 		// then
-		ingredientService.findByRecipeIdAndIngredientId("2", "3");
+		ingredientService.findByRecipeIdAndIngredientId("2", "3").block();
 	}
 
 	@Test(expected= NoSuchElementException.class)
@@ -124,9 +126,8 @@ public class IngredientServiceImplTest {
 		recipe.addIngredient(ingredient1);
 		recipe.addIngredient(ingredient2);
 		recipe.addIngredient(ingredient3);
-		Optional<Recipe> recipeOptional = Optional.of(recipe);
 
-		when(recipeRepository.findById(anyString())).thenReturn(recipeOptional);
+		when(recipeRepository.findById("2")).thenReturn(Mono.empty());
 
 		// then
 		ingredientService.findByRecipeIdAndIngredientId("1", "4");
@@ -136,21 +137,19 @@ public class IngredientServiceImplTest {
 	@Test
 	public void testSaveRecipeCommand() throws Exception {
 		// given
-		IngredientCommand command = new IngredientCommand();
-		command.setId("3");
-		command.setRecipeId("2");
-
-		Optional<Recipe> recipeOptional = Optional.of(new Recipe());
+		IngredientCommand ingredientCommand = new IngredientCommand();
+		ingredientCommand.setId("3");
+		ingredientCommand.setRecipeId("2");
 
 		Recipe savedRecipe = new Recipe();
 		savedRecipe.addIngredient(new Ingredient());
 		savedRecipe.getIngredients().iterator().next().setId("3");
 
-		when(recipeRepository.findById(anyString())).thenReturn(recipeOptional);
-		when(recipeRepository.save(any())).thenReturn(savedRecipe);
+		when(recipeRepository.findById(anyString())).thenReturn(Mono.just(new Recipe()));
+		when(recipeRepository.save(any())).thenReturn(Mono.just(savedRecipe));
 
 		// when
-		IngredientCommand savedCommand = ingredientService.saveIngredientCommand(command);
+		IngredientCommand savedCommand = ingredientService.saveIngredientCommand(ingredientCommand).block();
 
 		// then
 		assertEquals("3", savedCommand.getId());
@@ -165,14 +164,12 @@ public class IngredientServiceImplTest {
 		IngredientCommand command = new IngredientCommand();
 		command.setId("3");
 
-		Optional<Recipe> recipeOptional = Optional.of(new Recipe());
-
 		Recipe savedRecipe = new Recipe();
 		savedRecipe.addIngredient(new Ingredient());
 		savedRecipe.getIngredients().iterator().next().setId("3");
 
-		when(recipeRepository.findById(anyString())).thenReturn(recipeOptional);
-		when(recipeRepository.save(any())).thenReturn(savedRecipe);
+		when(recipeRepository.findById(anyString())).thenReturn(Mono.just(new Recipe()));
+		when(recipeRepository.save(any())).thenReturn(Mono.just(savedRecipe));
 
 		// when
 		ingredientService.saveIngredientCommand(command);
@@ -191,9 +188,6 @@ public class IngredientServiceImplTest {
 		recipe.getIngredients().iterator().next().setId("3");
 		recipe.getIngredients().iterator().next().setUom(unitOfMeasure);
 		
-		Optional<Recipe> recipeOptional = Optional.of(recipe);
-		Optional<UnitOfMeasure> unitOfMeasureOptional = Optional.of(unitOfMeasure);
-
 		UnitOfMeasureCommand unitOfMeasureCommand = new UnitOfMeasureCommand();
 		unitOfMeasureCommand.setId("1");
 		
@@ -209,9 +203,9 @@ public class IngredientServiceImplTest {
 		savedRecipe.getIngredients().iterator().next().setUom(unitOfMeasure);
 
 		
-		when(recipeRepository.findById(anyString())).thenReturn(recipeOptional);
-		when(unitOfMeasureRepository.findById(anyString())).thenReturn(unitOfMeasureOptional);
-		when(recipeRepository.save(any())).thenReturn(savedRecipe);
+		when(recipeRepository.findById(anyString())).thenReturn(Mono.just(recipe));
+		when(unitOfMeasureRepository.findById(anyString())).thenReturn(Mono.just(unitOfMeasure));
+		when(recipeRepository.save(any())).thenReturn(Mono.just(savedRecipe));
 
 		// when
 		ingredientService.saveIngredientCommand(command);
@@ -231,12 +225,11 @@ public class IngredientServiceImplTest {
 		ingredient.setId("3");
 		recipe.addIngredient(ingredient);
 		ingredient.setRecipe(recipe);
-		Optional<Recipe> recipeOptional = Optional.of(recipe);
 
-		when(recipeRepository.findById(anyString())).thenReturn(recipeOptional);
+		when(recipeRepository.findById(anyString())).thenReturn(Mono.just(recipe));
 
 		// when
-		ingredientService.deleteById("1", "3");
+		when(ingredientService.deleteById(anyString(), anyString())).thenReturn(Mono.empty());
 
 		// then
 		verify(recipeRepository, times(1)).findById(anyString());
