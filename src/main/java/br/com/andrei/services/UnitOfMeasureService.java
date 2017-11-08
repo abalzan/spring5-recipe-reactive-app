@@ -1,10 +1,10 @@
 package br.com.andrei.services;
 
-import java.util.Set;
-
 import br.com.andrei.commands.UnitOfMeasureCommand;
+import reactor.core.publisher.Flux;
 
 public interface UnitOfMeasureService {
 
-	Set<UnitOfMeasureCommand> listAllUoms();
+	//A Reactive Streams Publisher with rx operators that emits 0 to N elements, and then completes (successfully or with an error).
+	Flux<UnitOfMeasureCommand> listAllUoms();
 }

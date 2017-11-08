@@ -1,21 +1,21 @@
 package br.com.andrei.services;
 
-import java.util.Set;
-
 import br.com.andrei.commands.RecipeCommand;
 import br.com.andrei.domain.Recipe;
+import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
 
 
 public interface RecipeService {
 
-	Set<Recipe> getRecipes();
+	Flux<Recipe> getRecipes();
 
-	Recipe findById(String id);
+	Mono<Recipe> findById(String id);
 	
-	void deleteById(String id);
+	Mono<Void> deleteById(String id);
 
-	RecipeCommand findCommandById(String id);
+	Mono<RecipeCommand> findCommandById(String id);
 	
-	RecipeCommand saveRecipeCommand(RecipeCommand recipeCommand);
+	Mono<RecipeCommand> saveRecipeCommand(RecipeCommand recipeCommand);
 	
 }

@@ -22,11 +22,6 @@ public class CategoryCommandToCategoryTest {
     }
 
     @Test
-    public void testNullObject() throws Exception {
-        assertNull(conveter.convert(null));
-    }
-
-    @Test
     public void testEmptyObject() throws Exception {
         assertNotNull(conveter.convert(new CategoryCommand()));
     }

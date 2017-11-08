@@ -1,72 +1,73 @@
 package br.com.andrei.services;
 
-import java.util.HashSet;
-import java.util.Optional;
-import java.util.Set;
-
 import org.springframework.stereotype.Service;
 
 import br.com.andrei.commands.RecipeCommand;
 import br.com.andrei.converters.RecipeCommandToRecipe;
 import br.com.andrei.converters.RecipeToRecipeCommand;
 import br.com.andrei.domain.Recipe;
-import br.com.andrei.exceptions.NotFoundException;
-import br.com.andrei.repositories.RecipeRepository;
+import br.com.andrei.repositories.RecipeReactiveRepository;
 import lombok.extern.slf4j.Slf4j;
+import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
 
 @Slf4j
 @Service
 public class RecipeServiceImpl implements RecipeService {
 
-	private final RecipeRepository recipeRepository;
+	private final RecipeReactiveRepository recipeReactiveRepository;
 	private final RecipeCommandToRecipe recipeCommandToRecipe;
 	private final RecipeToRecipeCommand recipeToRecipeCommand;
 
-	public RecipeServiceImpl(RecipeRepository recipeRepository, RecipeCommandToRecipe recipeCommandToRecipe,
+	public RecipeServiceImpl(RecipeReactiveRepository recipeReactiveRepository, RecipeCommandToRecipe recipeCommandToRecipe,
 			RecipeToRecipeCommand recipeToRecipeCommand) {
-		this.recipeRepository = recipeRepository;
+		this.recipeReactiveRepository = recipeReactiveRepository;
 		this.recipeCommandToRecipe = recipeCommandToRecipe;
 		this.recipeToRecipeCommand = recipeToRecipeCommand;
 	}
 
 	@Override
-	public Set<Recipe> getRecipes() {
-		log.debug("I'm in the service");
+	public Flux<Recipe> getRecipes() {
+		log.debug("Recipe Service "+ getClass().getName() );
 
-		Set<Recipe> recipeSet = new HashSet<>();
-		recipeRepository.findAll().iterator().forEachRemaining(recipeSet::add);
-		return recipeSet;
+		return recipeReactiveRepository.findAll();
 	}
 
 	@Override
-	public Recipe findById(String id) {
-
-		Optional<Recipe> recipeOptional = recipeRepository.findById(id);
-
-		if (!recipeOptional.isPresent()) {
-			throw new NotFoundException("Recipe Not Found. For ID value: "+id );
-		}
-
-		return recipeOptional.get();
+	public Mono<Recipe> findById(String id) {
+		log.debug("Recipe Service "+ getClass().getName() );
+		
+		return recipeReactiveRepository.findById(id);
 	}
 
 	@Override
-	public RecipeCommand findCommandById(String id) {
-		return recipeToRecipeCommand.convert(findById(id));
+	public Mono<RecipeCommand> findCommandById(String id) {
+		log.debug("Recipe Service "+ getClass().getName() );
+//		return recipeReactiveRepository.findById(id).map(recipeToRecipeCommand::convert);
+		return recipeReactiveRepository.findById(id)
+				.map(recipe -> {
+					RecipeCommand recipeCommand = recipeToRecipeCommand.convert(recipe);
+					recipeCommand.getIngredients().forEach(rc -> rc.setRecipeId(recipeCommand.getId()));
+					
+					return recipeCommand;
+				});
 	}
 	
 	@Override
-	public RecipeCommand saveRecipeCommand(RecipeCommand recipeCommand) {
-		Recipe detachedRecipe = recipeCommandToRecipe.convert(recipeCommand);
+	public Mono<RecipeCommand> saveRecipeCommand(RecipeCommand recipeCommand) {
 
-		Recipe savedRecipe = recipeRepository.save(detachedRecipe);
-		log.debug("Saved Recipe Id " + savedRecipe.getId());
-		return recipeToRecipeCommand.convert(savedRecipe);
+		log.debug("Recipe Service "+ getClass().getName() );
+//		Recipe detachedRecipe = recipeCommandToRecipe.convert(recipeCommand);
+//		Recipe savedRecipe = recipeReactiveRepository.save(detachedRecipe).block();
+//		RecipeCommand recipeCommandSaved = recipeToRecipeCommand.convert(savedRecipe);
+		return recipeReactiveRepository.save(recipeCommandToRecipe.convert(recipeCommand)).map(recipeToRecipeCommand::convert);
 	}
 
 	@Override
-	public void deleteById(String id) {
+	public Mono<Void> deleteById(String id) {
 		log.debug("Delete Recipe Id " + id);
-		recipeRepository.deleteById(id);
+		recipeReactiveRepository.deleteById(id).block();
+		
+		return Mono.empty();
 	}
 }
