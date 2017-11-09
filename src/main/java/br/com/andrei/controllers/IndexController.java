@@ -21,7 +21,12 @@ public class IndexController {
 	public String getIndexPage(Model model) {
 		log.debug("Getting Index page");
 
-		model.addAttribute("recipes", recipeService.getRecipes().collectList().block());
+		//now using reactive thymeleaf, we do not need to configure getRecipes like that: 
+		//model.addAttribute("recipes", recipeService.getRecipes().collectList().block());
+		//this happen because of the webflux dependency that we add in our project.
+		//if you take a look on org.springframework.boot.autoconfigure.thymeleaf.ThymeleafAutoConfiguration.class 
+		//you will see that the REACTIVE type is getting automatically.  
+		model.addAttribute("recipes", recipeService.getRecipes()); 
 
 		return "index";
 	}

@@ -1,6 +1,6 @@
 buildscript {
 	ext {
-		springBootVersion = '2.0.0.M5'
+		springBootVersion = '2.0.0.M6'
 	}
 	repositories {
 		mavenCentral()
@@ -32,8 +32,9 @@ repositories {
 dependencies {
 	compile('org.springframework.boot:spring-boot-starter-data-mongodb')
 	compile('org.springframework.boot:spring-boot-starter-thymeleaf')
-	compile('org.springframework.boot:spring-boot-starter-web')
-	//compile('org.springframework.boot:spring-boot-starter-webflux')
+//	compile group: 'org.springframework.boot', name: 'spring-boot-starter-thymeleaf', version: '3.0.9.RELEASE'
+	//compile('org.springframework.boot:spring-boot-starter-web')
+	compile('org.springframework.boot:spring-boot-starter-webflux')
 	compile('org.springframework.boot:spring-boot-starter-data-mongodb-reactive')
 	runtime('org.springframework.boot:spring-boot-devtools')
 	compile 'org.webjars:bootstrap:3.3.7-1'
