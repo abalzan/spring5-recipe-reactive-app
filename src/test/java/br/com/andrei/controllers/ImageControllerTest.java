@@ -13,6 +13,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
@@ -28,6 +29,7 @@ import br.com.andrei.services.ImageService;
 import br.com.andrei.services.RecipeService;
 import reactor.core.publisher.Mono;
 
+@Ignore
 @SpringBootTest(classes = { ImageController.class })
 public class ImageControllerTest {
 
