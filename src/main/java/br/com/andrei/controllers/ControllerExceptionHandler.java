@@ -8,7 +8,6 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.support.WebExchangeBindException;
 import org.thymeleaf.exceptions.TemplateInputException;
 
-import br.com.andrei.exceptions.InternalServerError;
 import br.com.andrei.exceptions.NotFoundException;
 import lombok.extern.slf4j.Slf4j;
 
@@ -38,21 +37,6 @@ public class ControllerExceptionHandler {
 		model.addAttribute("exception", exception);
 		
 		return "404error";
-	}
-	
-	@ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
-	@ExceptionHandler(InternalServerError.class)
-	public void handleInternalServerError(Exception exception) {
-
-//		log.error("Handling not found exception");
-//		log.error(exception.getMessage());
-//
-//		ModelAndView modelAndView = new ModelAndView();
-//
-//		modelAndView.setViewName("500error");
-//		modelAndView.addObject("exception", exception);
-//
-//		return modelAndView;
 	}
 
 }
